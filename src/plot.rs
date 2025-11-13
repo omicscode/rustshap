@@ -4,7 +4,7 @@ use plotters::prelude::*;
 Gaurav Sablok
 codeprog@icloud.com
  added a plotters function
- */
+*/
 
 fn plot_shap(shap: &Array4<f32>, pos: usize) -> Result<(), Box<dyn std::error::Error>> {
     let root = BitMapBackend::new("shap_heatmap.png", (800, 600)).into_drawing_area();

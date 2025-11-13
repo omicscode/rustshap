@@ -1,5 +1,10 @@
 use burn::prelude::*;
 use burn::tensor::backend::NdArrayBackend;
+use ndarray::Array4;
+mod args;
+use crate::args::CommandParse;
+use crate::args::Commands;
+use clap::Parser;
 mod plot;
 mod shap;
 use shap::{ShapModel, kernel_shap};
@@ -8,24 +13,47 @@ use shap::{ShapModel, kernel_shap};
 Gaurav Sablok
 codeprog@icloud.com
 
-- adding a clap before the final release.
-- adding a function for the background data addition.
-- addition a model read directly from the PyTorch also.
 */
 
 fn main() {
-    type B = NdArrayBackend<f32>;
-    let device = Default::default();
-    let model = CNNModel::<B>::new(4, &device);
-    let background = Array4::<f32>::zeros((1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
-    let instance = Array4::<f32>::from_shape_fn((1, 50, 10, 4), |_| rand::random());
-    let shap_vals = kernel_shap(&model, &instance, &background, nsamples = 100, &device);
-    println!("SHAP values shape: {:?}", shap_vals.shape());
-    println!(
-        "Top contributing feature: {:?}",
-        shap_vals
-            .iter()
-            .enumerate()
-            .max_by(|a, b| a.1.abs().partial_cmp(&b.1.abs()).unwrap())
-    );
+    let argparse = CommandParse::parse();
+    match &argparse.command {
+        Commands::SHAP {
+            modelpath,
+            instance,
+            instanceshape,
+            background,
+            backgroundshape,
+            nsamplesinput,
+            device,
+        } => {
+            type B = NdArrayBackend<f32>;
+            let device = Default::default();
+            let modelunwrap = model.load(modelpath).unwrap();
+            let backgrounddataset = Array4::from_shape_vec(
+                String::from(background).split("").collect::<Vec<_>>(),
+                backgroundshape.parse::<usize>(),
+            );
+            let instance = Array4::<f32>::from_shape_vec(
+                String::from(instance).split(" ").collect::<Vec<_>>(),
+                instanceshape.parse::<usize>(),
+            );
+            let shap_vals = kernel_shap(
+                &model,
+                &instance,
+                &background,
+                nsamples = nsamplesinput.parse::<usize>(),
+                &device,
+            );
+            println!("SHAP values shape: {:?}", shap_vals.shape());
+            println!(
+                "Top contributing feature: {:?}",
+                shap_vals.iter().enumerate().max_by(|a, b| a
+                    .1
+                    .abs()
+                    .partial_cmp(&b.1.abs())
+                    .unwrap())
+            );
+        }
+    }
 }
