@@ -1,3 +1,4 @@
+use bincode::serde::borrow_decode_from_slice;
 use burn::module::Module;
 use burn::tensor::backend::Backend;
 use burn::tensor::{Device, Float, Tensor};
@@ -61,7 +62,7 @@ pub fn kernel_shap<B: Backend, M: ShapModel<B>>(
                     let marginal = p_on - p_off;
                     let z = mask.iter().filter(|&&b| b).count();
                     let weight = if z == 0 || z == mask.len() {
-                        1e10 // infinite weight approximation
+                        1e10
                     } else {
                         (mask.len() - 1) as f32 / (z as f32 * (mask.len() - z) as f32)
                     };

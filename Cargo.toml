@@ -10,3 +10,5 @@ ndarray-rand = "0.14"
 rand = "0.8"
 plotters = "0.3"
 clap = "4.5.51"
+bincode = { version = "2.0.1", features = ["serde"] }
+serde = { version = "1.0.228", features = ["derive"] }
